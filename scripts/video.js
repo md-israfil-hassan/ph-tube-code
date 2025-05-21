@@ -9,11 +9,10 @@ return `${hour} hour ${minute} mitute ${seconds} seconds ago` ;
 }
 
 const removeActiveClass = () =>{
-  const button = document.getElementsByClassName('category-btn') ;
-  console.log(button)
-  for( let btn of button ){
-    btn.classList.remove('active')
-  }
+const button = document.getElementsByClassName('category-btn') ;
+for( let btn of button ){
+  btn.classList.remove('active')
+}
 }
 
 //1. Fetch, Load and show Categories on HTML
@@ -29,9 +28,9 @@ fetch('https://openapi.programming-hero.com/api/phero-tube/categories')
 .catch( (error) => console.log(error))
 };
 
-const loadVideos = () =>{
+const loadVideos = (searchText = '') =>{
 // Fetch the data
-fetch('https://openapi.programming-hero.com/api/phero-tube/videos')
+fetch(`https://openapi.programming-hero.com/api/phero-tube/videos?title=${searchText}`)
 .then( (res) => res.json())
 .then( (data) => displayVideos(data.videos))
 .catch( (error) => console.log(error))
@@ -42,14 +41,38 @@ const loadCategoriesVideos = (id) =>{
   fetch(`https://openapi.programming-hero.com/api/phero-tube/category/${id}`)
 .then( (res) => res.json())
 .then( (data) => {
-  removeActiveClass() ;
-  // sobike active koro class remove korao 
-  const activeBtn = document.getElementById(`btn-${id}`)
-  activeBtn.classList.add("active") ;
+removeActiveClass()
+  // acvite class add 
+  const btn = document.getElementById(`btn-${id}`) 
+  btn.classList.add('active') 
   displayVideos(data.category)
 })
-.catch( (error) => console.log(error))
+  .catch( (error) => console.log(error))
 }
+
+const loadDetails = async (videoId) =>{
+
+  const url = `https://openapi.programming-hero.com/api/phero-tube/video/${videoId}` ;
+  const res = await fetch(url) ;
+  const data = await res.json() ;
+displayDetails(data.video)
+
+};
+
+const displayDetails = (video) =>{
+const detailContainer = document.getElementById('modal-content') ;
+detailContainer.innerHTML=`
+<img src=${video.thumbnail} />
+<p>${video.description}</p>
+`;
+
+// way-1
+// document.getElementById('showModalData').click() ;
+//way-2
+document.getElementById('customModal').showModal()
+
+}
+
 
 // const cardDemo = {
 //     "category_id": "1001",
@@ -88,9 +111,8 @@ else{
   videoConteriner.classList.add('grid')
 }
 
-
     videos.forEach( video =>{
-console.log(video)
+// console.log(video)
 const card = document.createElement('div');
 card.classList = "card";
 card.innerHTML =`
@@ -118,8 +140,7 @@ ${video.authors[0].verified === true ? '<img class="w-5" src="https://img.icons8
  : ''}
 
 </div>
-
-<p> </p>
+<p> <button onclick="loadDetails('${video.video_id}')" class="btn btn-sm btn-error"> Details </button> </p>
     </div>
   </div>
 ` ;
@@ -130,24 +151,26 @@ videoConteriner.append(card)
 
 // Create DisplayCetagories
 const displayCategories = (categories) =>{
-
     const categoriesContainer = document.getElementById('categories')
-
     // add Data in html
     categories.forEach( (item) => {
         // console.log(item)
         // creat a button
-
        const buttonContainer = document.createElement('div') ;
        buttonContainer.innerHTML = `
        <button id="btn-${item.category_id}" onclick="loadCategoriesVideos(${item.category_id})" class ="btn category-btn "> ${item.category} </button>
-       `
+       `;
     
         // add button to categories container
 
         categoriesContainer.append(buttonContainer)
     });
 };
+
+
+document.getElementById('search-input').addEventListener('keyup', (e)=>{
+loadVideos(e.target.value)
+})
 
 loadCategories() ;
 loadVideos();
